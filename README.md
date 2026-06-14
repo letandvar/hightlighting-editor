@@ -10,6 +10,7 @@ A lightweight code editor built with HTML, CSS, JavaScript, and Prism.js.
 * Mobile-friendly interface
 * Automatic line wrapping
 * No build tools required
+* - Pretty formatting – Automatically formats HTML code for better readability using js-beautify.
 
 ## Usage
 
@@ -29,10 +30,13 @@ The editor uses a `contenteditable` element for text input and Prism.js for synt
 ## Limitations
 
 * Designed for small to medium code snippets
-* Currently tested with JavaScript highlighting
 * Not intended as a full IDE replacement
 
-## License
+## Known Issues
+
+- The text cursor (caret) positioning is not fully stable in some cases, especially after syntax highlighting updates. This may cause slight jumping or misalignment during typing.
+
+# License
 
 CC0 1.0 Universal
 
