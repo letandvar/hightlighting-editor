@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+  <title>Editor</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #container {
+      padding: 10px;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #toolbar {
+      width: 100%;
+      height: fit-content;
+      background-color: #010409;
+      border: 2px solid #3e3e3e;
+      border-radius: 10px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #title {
+      color: #fff;
+      font-family: arial;
+      font-size: 18px;
+      font-weight: 500;
+
+    }
+
+    #forImgs {
+      height: 100%;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+
+    }
+
+    .img {
+      height: 30px;
+      aspect-ratio: 1;
+      background-color: #fff2;
+      border: 1px solid #fff2;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .img:active {
+      opacity: 80%;
+    }
+
+    .img::after {
+      display: block;
+      width: 100%;
+      height: 100%;
+      content: "";
+      filter: invert(100%);
+      background-size: 60%;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 40%;
+    }
+
+    .save::after {
+      background-image: url("https://cdn-icons-png.flaticon.com/64/9147/9147708.png");
+      background-size: 70%;
+    }
+
+    .pretty::after {
+      background-image: url("https://cdn-icons-png.flaticon.com/64/764/764690.png");
+      background-size: 50%;
+    }
+
+    .size::after {
+      background-image: url("https://cdn-icons-png.flaticon.com/64/2087/2087807.png");
+      background-size: 50%;
+    }
+
+    .copy::after {
+      background-image: url("https://cdn-icons-png.flaticon.com/64/5859/5859288.png");
+      background-size: 60%;
+    }
+
+    .run::after {
+      background-image: url("https://cdn-icons-png.flaticon.com/64/27/27223.png");
+      background-size: 50%;
+    }
+
+    #pree {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background: #0d1117;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+
+    code {
+      width: 100%;
+      flex: 1;
+      display: block;
+      outline: none;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 12px;
+      border: 2px solid #3e3e3e;
+      border-radius: 10px;
+      padding: 10px 15px;
+      overflow-y: auto;
+      background-color: #000;
+    }
+
+    ::selection {
+      background: #333;
+    }
+
+    @media (hover:hover) {
+      .img:hover {
+        background-color: #fff3;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="container">
+
+    <div id="toolbar">
+
+      <p id="title">IDE-TOR</p>
+
+      <div id="forImgs">
+        <div class="img save"></div>
+        <div class="img pretty"></div>
+        <div class="img size"></div>
+        <div class="img copy"></div>
+        <div class="img run"></div>
+      </div>
+
+    </div>
+
+    <pre id="pree"><code contenteditable="true" autocapitalize="none" class="language-javascript" id="code"></code></pre>
+
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+
+  <script>
+    document.addEventListener("error", (e) => {
+      if (e.target.tagName === "IMG") {
+        //e.target.src = "default.png";
+        e.target.style.backgroundColor = "yellow";
+      }
+    }, true);
+  </script>
+
+  <script>
+    const code = document.getElementById("code");
+
+    let timer = null;
+
+
+    function getCaretIndex(el) {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return 0;
+
+      const range = sel.getRangeAt(0);
+      const pre = range.cloneRange();
+
+      pre.selectNodeContents(el);
+      pre.setEnd(range.startContainer, range.startOffset);
+
+      return pre.toString().length;
+    }
+
+
+    function setCaretIndex(el, index) {
+      const sel = window.getSelection();
+      const range = document.createRange();
+
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+
+      let node, pos = 0;
+
+      while ((node = walker.nextNode())) {
+        const next = pos + node.textContent.length;
+
+        if (index <= next) {
+          range.setStart(node, index - pos);
+          range.collapse(true);
+          break;
+        }
+
+        pos = next;
+      }
+
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+
+    function highlight() {
+      const text = code.textContent;
+      const caret = getCaretIndex(code);
+
+      code.innerHTML = Prism.highlight(
+        text,
+        Prism.languages.javascript,
+        "javascript"
+      );
+
+      requestAnimationFrame(() => {
+        setCaretIndex(code, caret);
+      });
+    }
+
+
+    code.addEventListener("input", () => {
+      clearTimeout(timer);
+
+      timer = setTimeout(() => {
+        highlight();
+      }, 400);
+    });
+  </script>
+
+</body>
+
+</html>
